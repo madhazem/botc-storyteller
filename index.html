@@ -2658,82 +2658,120 @@ function gameStory(g){
   const teamIn = (map, t) => g.players.filter(p => BY_ID[map[p.id]]?.team === t);
   const who = (p, map) => `${p.name} (${cn(map[p.id])})`;
   const s = n => n === 1 ? "" : "s";
+  // A player with their character: "Ann, the Fortune Teller," (English, Arabic) or "Ann (Adivina)".
+  const R = (id, ch) => ["en", "ar"].includes(L() ? state.lang : "en") ? `${N(id)}${L() ? "،" : ","} ${L() ? "" : "the "}${cn(ch)}${L() ? "،" : ","}` : `${N(id)} (${cn(ch)})`;
+  const fill = (t, d) => t.replace(/\$(n|c|w)/g, (m, k) => d[k]);
+  // What each character does when it chooses someone, in its own way. $n name, $c character, $w the choice.
+  const FLAVOR = {
+    fortuneteller:{en:"$n, the $c, gazed into the crystal ball at $w, hunting for the Demon.", ar:"$n، $c، بصّت في كورة البلور على $w وهي بتدوّر على الشيطان.",
+      es:"$n, la $c, miró la bola de cristal hacia $w, buscando al Demonio.", it:"$n, l'$c, scrutò la sfera di cristallo su $w, in cerca del Demone."},
+    poisoner:{en:"$n, the $c, brewed a quiet poison meant for $w.", ar:"$n، $c، حضّر سمّ هادي لـ $w.",
+      es:"$n, el $c, preparó un veneno silencioso para $w.", it:"$n, l'$c, preparò un veleno silenzioso per $w."},
+    monk:{en:"$n, the $c, folded their hands and shielded $w from the dark.", ar:"$n، $c، ضمّ إيديه وحمى $w من الضلمة.",
+      es:"$n, el $c, juntó las manos y protegió a $w de la oscuridad.", it:"$n, il $c, giunse le mani e protesse $w dal buio."},
+    imp:{en:"$n, the $c, crept through the dark toward $w.", ar:"$n، $c، اتسلّل في الضلمة ناحية $w.",
+      es:"$n, el $c, se deslizó en la oscuridad hacia $w.", it:"$n, il $c, strisciò nel buio verso $w."},
+    ravenkeeper:{en:"$n, the $c, listened to the ravens, and they whispered of $w.", ar:"$n، $c، سمع الغربان، وهمسوا عن $w.",
+      es:"$n, el $c, escuchó a los cuervos, y susurraron sobre $w.", it:"$n, il $c, ascoltò i corvi, che sussurrarono di $w."},
+    butler:{en:"$n, the $c, swore to serve $w tomorrow.", ar:"$n، $c، وعد يخدم $w بكرة.",
+      es:"$n, el $c, juró servir a $w mañana.", it:"$n, il $c, giurò di servire $w domani."},
+  };
+  const TEAM_FLAVOR = {
+    demon:{en:"In the dark, $n, the $c, reached for $w.", ar:"في الضلمة، $n، $c، مدّ إيده على $w.",
+      es:"En la oscuridad, $n ($c) alargó la mano hacia $w.", it:"Nel buio, $n ($c) tese la mano verso $w."},
+    minion:{en:"$n, the $c, moved among the shadows toward $w.", ar:"$n، $c، اتحرّك في الضلمة ناحية $w.",
+      es:"$n ($c) se movió entre las sombras hacia $w.", it:"$n ($c) si mosse nell'ombra verso $w."},
+    other:{en:["$n, the $c, studied $w in silence.", "$n, the $c, settled on $w, and told no one."], ar:["$n، $c، بصّ لـ $w بصّة طويلة من غير كلام.", "$n، $c، اختار $w ومقالش لحد."],
+      es:["$n ($c) observó a $w en silencio.", "$n ($c) se decidió por $w, sin decírselo a nadie."], it:["$n ($c) osservò $w in silenzio.", "$n ($c) scelse $w, senza dirlo a nessuno."]},
+  };
   const parts = [];
 
   const demons = teamIn(start, "demon"), minions = teamIn(start, "minion"), dl = demons.map(p => who(p, start)).join(sep), ml = minions.map(p => who(p, start)).join(sep);
   const n = g.players.length, script = historyScriptName(g);
   parts.push({h:lx({en:"Prologue", ar:"البداية", es:"Prólogo", it:"Prologo"}), t:lx({
-    en:`${n} players sat down to play ${script}.${demons.length ? ` Hidden among them was the Demon: ${dl}${minions.length ? `, helped by the Minion${s(minions.length)}: ${ml}` : ""}.` : ""}`,
-    ar:`${n} لاعيبة قعدوا يلعبوا «${script}».${demons.length ? ` ومستخبّي وسطهم الشيطان: ${dl}${minions.length ? `، ومعاه ${minions.length === 1 ? "التابع" : "الأتباع"}: ${ml}` : ""}.` : ""}`,
-    es:`${n} jugadores se sentaron a jugar «${script}».${demons.length ? ` Entre ellos se escondía el Demonio: ${dl}${minions.length ? `, ayudado por ${minions.length === 1 ? "el Esbirro" : "los Esbirros"}: ${ml}` : ""}.` : ""}`,
-    it:`${n} giocatori si sono seduti per giocare a «${script}».${demons.length ? ` Tra loro si nascondeva il Demone: ${dl}${minions.length ? `, aiutato ${minions.length === 1 ? "dal Seguace" : "dai Seguaci"}: ${ml}` : ""}.` : ""}`})});
+    en:`The village lay quiet under a pale moon. ${n} souls gathered for ${script}, and one of them was not what they seemed.${demons.length ? ` The Demon wore the face of a neighbour: ${dl}${minions.length ? `, served in the shadows by the Minion${s(minions.length)} ${ml}` : ""}.` : ""}`,
+    ar:`البلد كانت ساكتة تحت قمر شاحب. ${n} نفوس اتجمّعوا في «${script}»، وواحد فيهم مش زي ما بيبان.${demons.length ? ` الشيطان لابس وش جار من الجيران: ${dl}${minions.length ? `، وفي الضلمة بيخدمه ${minions.length === 1 ? "التابع" : "الأتباع"} ${ml}` : ""}.` : ""}`,
+    es:`El pueblo dormía bajo una luna pálida. ${n} almas se reunieron en «${script}», y una de ellas no era lo que parecía.${demons.length ? ` El Demonio llevaba el rostro de un vecino: ${dl}${minions.length ? `, servido en las sombras por ${minions.length === 1 ? "el Esbirro" : "los Esbirros"} ${ml}` : ""}.` : ""}`,
+    it:`Il villaggio giaceva silenzioso sotto una luna pallida. ${n} anime si riunirono per «${script}», e una di loro non era ciò che sembrava.${demons.length ? ` Il Demone portava il volto di un vicino: ${dl}${minions.length ? `, servito nell'ombra ${minions.length === 1 ? "dal Seguace" : "dai Seguaci"} ${ml}` : ""}.` : ""}`})});
 
   const byPh = {};
   log.forEach(e => (byPh[e.ph] ||= []).push(e));
   Object.keys(byPh).map(Number).filter(ph => ph > 0).sort((a, b) => a - b).forEach(ph => {
     const night = isNightPh(ph), out = [];
+    out.push(night
+      ? V({en:["Darkness settled over the village.", "The candles burned low.", "A cold wind crept through the streets."], ar:["الضلمة نزلت على البلد.", "الشموع كانت على وشك تخلص.", "هوا بارد دخل الشوارع."],
+          es:["La oscuridad cayó sobre el pueblo.", "Las velas ardían bajas.", "Un viento frío recorrió las calles."], it:["Il buio calò sul villaggio.", "Le candele ardevano basse.", "Un vento freddo corse per le strade."]})
+      : V({en:["Dawn broke, grey and uneasy.", "The village woke, whispering.", "Daylight came, and with it suspicion."], ar:["الفجر طلع تقيل وقلقان.", "البلد صحيت والكل بيتهامس.", "النهار جه ومعاه الشك."],
+          es:["Amaneció, gris e inquieto.", "El pueblo despertó entre susurros.", "Llegó la luz del día, y con ella la sospecha."], it:["L'alba spuntò, grigia e inquieta.", "Il villaggio si svegliò tra i sussurri.", "Arrivò il giorno, e con esso il sospetto."]}));
+    let events = 0;
     byPh[ph].forEach(e => {
-      const nm = N(e.p), w = `${nm} (${cn(e.eff)})`;
+      const nm = N(e.p);
       switch (e.k) {
         case "pick": {
+          const yn = e.yesno || e.none;
           const what = e.yesno ? (e.yesno === "YES" ? lx({en:"yes", ar:"آه", es:"sí", it:"sì"}) : lx({en:"no", ar:"لأ", es:"no", it:"no"}))
             : e.none ? lx({en:"no one", ar:"محدش", es:"nadie", it:"nessuno"}) : [...(e.players || []).map(N), ...(e.chars || []).map(cn)].join(sep);
-          out.push(V({en:[`${w} chose ${what}.`, `${w} picked ${what}.`], ar:[`${w} اختار ${what}.`, `${w} حط عينه على ${what}.`],
-            es:[`${w} eligió: ${what}.`, `${w} se decidió por ${what}.`], it:[`${w} ha scelto: ${what}.`, `${w} ha puntato su ${what}.`]}));
+          const d = {n:nm, c:cn(e.eff), w:what};
+          events++;
+          if (yn) { out.push(lx({en:`${nm}, the ${d.c}, gave an answer: ${what}.`, ar:`${nm}، ${d.c}، جاوب: ${what}.`, es:`${nm} (${d.c}) respondió: ${what}.`, it:`${nm} (${d.c}) ha risposto: ${what}.`})); break; }
+          const f = FLAVOR[e.eff] || TEAM_FLAVOR[BY_ID[e.eff]?.team] || TEAM_FLAVOR.other;
+          out.push(fill(V(Object.fromEntries(Object.entries(f).map(([k, v]) => [k, v]))), d));
           break;
         }
         case "shown": {
           const to = (e.to || []).map(N).join(sep); if (!to) break;
-          const sum = toText(cardSummary(e.sections, P));
-          out.push(lx({en:`The Storyteller told ${to}: ${sum}.`, ar:`الراوي قال لـ ${to}: ${sum}.`, es:`El Narrador le dijo a ${to}: ${sum}.`, it:`Il Narratore ha detto a ${to}: ${sum}.`}));
+          const sum = toText(cardSummary(e.sections, P)); events++;
+          out.push(lx({en:`In a whisper, the Storyteller told ${to}: ${sum}.`, ar:`الراوي همس لـ ${to}: ${sum}.`, es:`En un susurro, el Narrador le dijo a ${to}: ${sum}.`, it:`In un sussurro, il Narratore disse a ${to}: ${sum}.`}));
           break;
         }
         case "char": {
-          cur[e.p] = e.to;
-          out.push(lx({en:`${nm} became the ${cn(e.to)}.`, ar:`${nm} بقى ${cn(e.to)}.`, es:`${nm} se convirtió en ${cn(e.to)}.`, it:`${nm} è diventato ${cn(e.to)}.`}));
+          cur[e.p] = e.to; events++;
+          out.push(lx({en:`${nm} was no longer who they seemed: now the ${cn(e.to)}.`, ar:`${nm} مابقاش اللي كان: بقى ${cn(e.to)}.`, es:`${nm} ya no era quien parecía: ahora, ${cn(e.to)}.`, it:`${nm} non era più chi sembrava: ora, ${cn(e.to)}.`}));
           break;
         }
         case "died": {
           if (byPh[ph].some(o => o.k === "day" && lx(o).includes(nm))) break; // the day ability line already says it
-          const d = `${nm} (${cn(cur[e.p])})`;
-          out.push(night ? V({en:[`In the night, ${d} died.`, `${d} never saw the morning.`], ar:[`في الليل، ${d} مات.`, `${d} ماشافش الصبح.`],
-            es:[`Durante la noche murió ${d}.`, `${d} no vio amanecer.`], it:[`Durante la notte è morto ${d}.`, `${d} non ha visto l'alba.`]})
-            : lx({en:`${d} died.`, ar:`${d} مات.`, es:`${d} murió.`, it:`${d} è morto.`}));
+          const r = R(e.p, cur[e.p]); events++;
+          out.push(night ? V({en:[`By dawn, ${r} lay still and cold.`, `${r} never woke.`], ar:[`لما الفجر طلع، ${r} كان ميّت وساكت.`, `${r} ماصحيش تاني.`],
+            es:[`Al amanecer, ${r} yacía sin vida.`, `${r} no despertó jamás.`], it:[`All'alba, ${r} giaceva senza vita.`, `${r} non si svegliò più.`]})
+            : lx({en:`${r} fell, and the village held its breath.`, ar:`${r} وقع، والبلد كتمت نَفَسها.`, es:`${r} cayó, y el pueblo contuvo el aliento.`, it:`${r} cadde, e il villaggio trattenne il respiro.`}));
           break;
         }
         case "executed": {
-          const d = `${nm} (${cn(cur[e.p])})`;
-          out.push(V({en:[`The town decided to execute ${d}.`, `${d} was put to death by the town.`], ar:[`البلد قررت تعدم ${d}.`, `${d} اتعدم.`],
-            es:[`El pueblo decidió ejecutar a ${d}.`, `${d} fue ejecutado.`], it:[`Il villaggio ha deciso di giustiziare ${d}.`, `${d} è stato giustiziato.`]}));
+          const r = R(e.p, cur[e.p]); events++;
+          out.push(V({en:[`The village pointed its finger, and ${r} was dragged to the gallows.`, `The vote was cast, and ${r} met the rope.`],
+            ar:[`البلد شاورت بصباعها، و${r} اتسحب للمشنقة.`, `الصوت اتحسم، و${r} راح للمشنقة.`],
+            es:[`El pueblo señaló con el dedo, y ${r} fue llevado a la horca.`, `El voto estaba echado, y ${r} conoció la soga.`],
+            it:[`Il villaggio puntò il dito, e ${r} fu trascinato alla forca.`, `Il voto fu dato, e ${r} conobbe il cappio.`]}));
           break;
         }
-        case "revived": out.push(lx({en:`${nm} came back to life.`, ar:`${nm} رجع للحياة.`, es:`${nm} volvió a la vida.`, it:`${nm} è tornato in vita.`})); break;
+        case "revived": events++; out.push(lx({en:`${nm} stirred, and breathed again.`, ar:`${nm} اتحرّك ورجعله النَفَس.`, es:`${nm} se agitó y volvió a respirar.`, it:`${nm} si mosse e tornò a respirare.`})); break;
         case "nom": {
-          const by = N(e.by), on = N(e.on), c = e.count, vs = e.voters?.length ? ` (${e.voters.map(N).join(sep)})` : "";
-          out.push(V({en:[`${by} nominated ${on}: ${c} vote${s(c)}${vs}.`, `${by} put ${on} on trial: ${c} vote${s(c)}${vs}.`],
-            ar:[`${by} رشّح ${on}: ${c} ${c === 1 ? "صوت" : "أصوات"}${vs}.`, `${by} اتهم ${on}، وطلعله ${c} ${c === 1 ? "صوت" : "أصوات"}${vs}.`],
-            es:[`${by} nominó a ${on}: ${c} voto${s(c)}${vs}.`, `${by} puso a ${on} en el banquillo: ${c} voto${s(c)}${vs}.`],
-            it:[`${by} ha nominato ${on}: ${c} vot${c === 1 ? "o" : "i"}${vs}.`, `${by} ha messo ${on} sotto accusa: ${c} vot${c === 1 ? "o" : "i"}${vs}.`]}));
+          const by = N(e.by), on = N(e.on), c = e.count, vs = e.voters?.length ? ` (${e.voters.map(N).join(sep)})` : ""; events++;
+          out.push(V({en:[`${by} raised a trembling finger at ${on}: ${c} vote${s(c)}${vs}.`, `Suspicion fell on ${on}. ${by} named them, and ${c} hand${s(c)} agreed${vs}.`],
+            ar:[`${by} شاور بصباع بيرتعش على ${on}: ${c} ${c === 1 ? "صوت" : "أصوات"}${vs}.`, `الشك وقع على ${on}. ${by} سمّاه، وطلعله ${c} ${c === 1 ? "صوت" : "أصوات"}${vs}.`],
+            es:[`${by} alzó un dedo tembloroso hacia ${on}: ${c} voto${s(c)}${vs}.`, `La sospecha cayó sobre ${on}. ${by} lo nombró, y recibió ${c} voto${s(c)}${vs}.`],
+            it:[`${by} puntò un dito tremante su ${on}: ${c} vot${c === 1 ? "o" : "i"}${vs}.`, `Il sospetto cadde su ${on}. ${by} lo nominò, e raccolse ${c} vot${c === 1 ? "o" : "i"}${vs}.`]}));
           break;
         }
-        case "day": out.push(`${nm} (${cn(e.eff)}) ${lx(e)}.`); break;
+        case "day": events++; out.push(`${R(e.p, cur[e.p] || e.eff)} ${lx(e)}.`); break;
       }
     });
-    if (!out.length) out.push(night
-      ? lx({en:"A quiet night: nothing was recorded.", ar:"ليلة هادية: مفيش حاجة اتسجّلت.", es:"Una noche tranquila: no se registró nada.", it:"Una notte tranquilla: non è stato registrato nulla."})
-      : lx({en:"The day passed with nothing recorded.", ar:"النهار عدّى ومفيش حاجة اتسجّلت.", es:"El día pasó sin que se registrara nada.", it:"Il giorno è passato senza che sia stato registrato nulla."}));
-    parts.push({h:phaseName(ph), t:out.join(" ")});
+    if (!events) out.push(night
+      ? lx({en:"Nothing stirred but the wind.", ar:"مفيش حاجة اتحرّكت غير الهوا.", es:"Nada se movió salvo el viento.", it:"Nulla si mosse tranne il vento."})
+      : lx({en:"No one dared to speak a name.", ar:"محدش جرؤ يقول اسم.", es:"Nadie se atrevió a pronunciar un nombre.", it:"Nessuno osò fare un nome."}));
+    parts.push({h:`${night ? "🌙" : "☀️"} ${phaseName(ph)}`, t:out.join(" ")});
   });
 
   const dn = teamIn(cur, "demon").map(p => p.name).join(sep), alive = g.players.filter(p => p.alive).map(p => p.name).join(sep);
   const end = g.winner === "good"
-    ? lx({en:`In the end, Good won.${dn ? ` ${dn} could hide no longer.` : ""}`, ar:`في الآخر، الطيبين كسبوا.${dn ? ` و${dn} ماقدرش يستخبّى أكتر من كده.` : ""}`,
-        es:`Al final ganó el Bien.${dn ? ` ${dn} ya no pudo esconderse.` : ""}`, it:`Alla fine ha vinto il Bene.${dn ? ` ${dn} non ha potuto più nascondersi.` : ""}`})
+    ? lx({en:`And so the shadows lifted. Good had won${dn ? `, and ${dn} could hide no longer` : ""}.`, ar:`والضلمة انقشعت. الطيبين كسبوا${dn ? `، و${dn} ماقدرش يستخبّى أكتر من كده` : ""}.`,
+        es:`Y así se disipó la sombra. Ganó el Bien${dn ? `, y ${dn} ya no pudo esconderse` : ""}.`, it:`E così le ombre si dissolsero. Vinse il Bene${dn ? `, e ${dn} non poté più nascondersi` : ""}.`})
     : g.winner === "evil"
-    ? lx({en:"In the end, Evil won, and the village fell silent.", ar:"في الآخر، الأشرار كسبوا، والبلد سكتت.", es:"Al final ganó el Mal y el pueblo quedó en silencio.", it:"Alla fine ha vinto il Male, e il villaggio è rimasto in silenzio."})
-    : lx({en:"The game was left unfinished.", ar:"اللعبة اتسابت من غير نهاية.", es:"La partida quedó sin terminar.", it:"La partita è rimasta incompiuta."});
-  const left = alive ? lx({en:`Still standing: ${alive}.`, ar:`لسه واقفين على رجليهم: ${alive}.`, es:`Siguen en pie: ${alive}.`, it:`Ancora in piedi: ${alive}.`})
-    : lx({en:"Nobody was left alive.", ar:"محدش فضل عايش.", es:"No quedó nadie con vida.", it:"Non è rimasto nessuno in vita."});
+    ? lx({en:"And so the dark closed in. Evil had won, and the village fell silent.", ar:"والضلمة قفلت على البلد. الأشرار كسبوا، والبلد سكتت.", es:"Y así se cerró la oscuridad. Ganó el Mal, y el pueblo quedó en silencio.", it:"E così il buio si richiuse. Vinse il Male, e il villaggio cadde nel silenzio."})
+    : lx({en:"The tale ends here, unfinished, for the dark still keeps its secrets.", ar:"الحكاية وقفت هنا من غير نهاية، والضلمة لسه بتخبّي أسرارها.", es:"El relato termina aquí, sin final, porque la oscuridad aún guarda sus secretos.", it:"Il racconto finisce qui, incompiuto, perché il buio custodisce ancora i suoi segreti."});
+  const left = alive ? lx({en:`Those still standing at the end: ${alive}.`, ar:`اللي فضلوا واقفين: ${alive}.`, es:`Quienes seguían en pie al final: ${alive}.`, it:`Chi era ancora in piedi alla fine: ${alive}.`})
+    : lx({en:"No one was left standing.", ar:"محدش فضل واقف.", es:"Nadie quedó en pie.", it:"Non rimase nessuno in piedi."});
   parts.push({h:lx({en:"Epilogue", ar:"الخاتمة", es:"Epílogo", it:"Epilogo"}), t:`${end} ${left}`});
   return {title:script, parts};
 }
@@ -2749,7 +2787,9 @@ Rules:
 - Use only what is in the log. Do not invent deaths, votes, choices, characters or results.
 - Keep the real player names. Use the character names as given.
 - Tell it night by night and day by day, building suspense, and end with the result.
-- Tone: gothic mystery with a little humour. Do not add a title unless it fits naturally.
+- Tone: dark, atmospheric mystery. Build suspense and let the village's fear grow. Show the evil players only through what they do, and keep the reader guessing until the events reveal them.
+- Weave each character's identity and ability into the prose through action (a Fortune Teller gazes into a crystal ball, a Poisoner brews something quiet). Do not list roles in brackets.
+- Do not add a title unless it fits naturally.
 
 GAME LOG
 ${gameText(g)}`;
