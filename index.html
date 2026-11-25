@@ -2765,6 +2765,28 @@ function gameStory(g){
       es:["$n ($c) observó a $w en silencio.", "$n ($c) se decidió por $w, sin decírselo a nadie."], it:["$n ($c) osservò $w in silenzio.", "$n ($c) scelse $w, senza dirlo a nessuno."]},
   };
   const parts = [];
+  const INTRO = {
+    steward:["was quietly told who could be trusted", "اتقاله بالسرّ مين ممكن يتأمّن", "supo en secreto en quién se podía confiar", "venne a sapere in segreto di chi ci si poteva fidare"],
+    knight:["was handed two names that were not the Demon", "عرف اسمين مش هم الشيطان", "recibió dos nombres que no eran el Demonio", "ricevette due nomi che non erano il Demone"],
+    noble:["was told of three souls, one of them evil", "اتقاله على تلات نفوس، واحد منهم شرير", "supo de tres almas, una de ellas malvada", "seppe di tre anime, una delle quali malvagia"],
+    oracle:["consulted the bones of the dead", "سألت عضم الموتى", "consultó los huesos de los muertos", "consultò le ossa dei morti"],
+    mathematician:["worked the numbers in the dark", "حسب الأرقام في الضلمة", "hizo cuentas en la oscuridad", "fece i conti nel buio"],
+    flowergirl:["followed the scent of flowers", "مشيت ورا ريحة الورد", "siguió el aroma de las flores", "seguì il profumo dei fiori"],
+    towncrier:["listened to the bell tower", "سمع جرس البرج", "escuchó la campana de la torre", "ascoltò la campana della torre"],
+    dreamer:["drifted into a dream and glimpsed", "غرق في حلم وشاف", "se sumió en un sueño y vislumbró", "scivolò in un sogno e intravide"],
+    balloonist:["floated above the rooftops and saw", "طفى فوق السطوح وشاف", "flotó sobre los tejados y vio", "levitò sopra i tetti e vide"],
+    shugenja:["faced the wind and learned", "وقف قدّام الريح وعرف", "se volvió hacia el viento y supo", "si volse al vento e seppe"],
+    sage:["heard a dying whisper", "سمع همسة أخيرة", "oyó un susurro moribundo", "udì un sussurro morente"],
+    grandmother:["visited the grandchild in the dark", "زارت حفيدها في الضلمة", "visitó a su nieto en la oscuridad", "visitò il nipote nel buio"],
+    bountyhunter:["followed a trail of blood", "مشي ورا أثر دم", "siguió un rastro de sangre", "seguì una scia di sangue"],
+    chambermaid:["listened at doors in the night", "سمعت من ورا الأبواب بالليل", "escuchó tras las puertas en la noche", "origliò dietro le porte"],
+    seamstress:["compared two threads", "قارنت خيطين", "comparó dos hilos", "confrontò due fili"],
+    cultleader:["listened to what the cult whispered", "سمع اللي الطايفة بتهمس بيه", "escuchó lo que susurraba la secta", "ascoltò ciò che sussurrava la setta"],
+    general:["surveyed the battlefield", "راقب ساحة المعركة", "contempló el campo de batalla", "scrutò il campo di battaglia"],
+    pixie:["was shown a face to borrow", "اتورّى وش يستلفه", "le mostraron un rostro para tomar prestado", "gli fu mostrato un volto da prendere in prestito"],
+    villageidiot:["squinted into the fog and learned", "رفّ بعينه في الضباب وعرف", "entrecerró los ojos en la niebla y supo", "socchiuse gli occhi nella nebbia e seppe"],
+    godfather:["was told which strangers walked among the good", "اتقاله مين الغرباء اللي وسط الطيبين", "supo qué forasteros había entre los buenos", "seppe quali forestieri c'erano tra i buoni"],
+  };
 
   const demons = teamIn(start, "demon"), minions = teamIn(start, "minion"), dl = demons.map(p => who(p, start)).join(sep), ml = minions.map(p => who(p, start)).join(sep);
   const n = g.players.length, script = historyScriptName(g);
@@ -2817,7 +2839,7 @@ function gameStory(g){
           const who = (String(first.label || "").match(/^(.*) is the$/) || [])[1] || "";
           const yn = e.sections?.some(q => q.yesno) ? (secs.find(q => q.yesno).yesno === "YES" ? lx({en:"yes", ar:"آه", es:"sí", it:"sì"}) : lx({en:"no", ar:"لأ", es:"no", it:"no"})) : "";
           const r = pl && eff ? R(pl.id, eff) : "", rc = r.replace(/[,،]$/, "");
-          const pair = names && tk, INFO = !r || !key.startsWith("adv:") ? null : {
+          const pair = names && tk, INFO = !r || (key && !key.startsWith("adv:")) ? null : {
             washerwoman: pair && {en:`${r} wrung out the village's laundry and found a stain: one of ${names} was the ${tk}.`, ar:`${r} عصرت غسيل البلد ولقت بقعة: واحد من ${names} هو ${tk}.`,
               es:`${r} escurrió la ropa del pueblo y halló una mancha: uno de ${names} era ${tk}.`, it:`${r} strizzò il bucato del villaggio e trovò una macchia: uno tra ${names} era ${tk}.`},
             librarian: pair ? {en:`${r} pulled a dusty volume from the shelf: one of ${names} was the ${tk}.`, ar:`${r} سحب كتاب مغبّر من الرف: واحد من ${names} هو ${tk}.`,
@@ -2839,6 +2861,25 @@ function gameStory(g){
               es:`La bola de cristal se nubló y luego se aclaró para ${r}: ${yn}.`, it:`La sfera di cristallo si offuscò, poi si schiarì per ${r}: ${yn}.`},
           }[eff];
           if (INFO) { out.push(lx(INFO)); break; }
+          if (key.startsWith("step:becomeimp")) {
+            out.push(lx({en:`In the dark, ${to} was told the dreadful truth: the Demon's mantle was theirs now.`, ar:`في الضلمة، ${to} اتقاله الحقيقة المرّة: بقى هو الشيطان دلوقتي.`,
+              es:`En la oscuridad, a ${to} le dijeron la terrible verdad: ahora era el Demonio.`, it:`Nel buio, a ${to} fu rivelata la terribile verità: ora era il Demone.`}));
+            break;
+          }
+          if (!key && first.label === "You are" && tk) {
+            out.push(lx({en:`The Storyteller leaned close and told ${to} who they truly were: the ${tk}.`, ar:`الراوي قرّب منه وقاله هو مين بجد: ${tk}.`,
+              es:`El Narrador se inclinó y le dijo a ${to} quién era en verdad: ${tk}.`, it:`Il Narratore si chinò e disse a ${to} chi era davvero: ${tk}.`}));
+            break;
+          }
+          const I = r && (!key || key.startsWith("adv:")) && INTRO[eff];
+          if (I) {
+            const T = t => L() ? trFull(t) : t;
+            const val = q => [...(q.names || []).map(N), ...(q.token ? [cn(q.token)] : []), ...(q.tokens || []).map(cn), ...(q.number != null ? [String(q.number)] : []),
+              ...(q.yesno ? [q.yesno === "YES" ? lx({en:"yes", ar:"آه", es:"sí", it:"sì"}) : lx({en:"no", ar:"لأ", es:"no", it:"no"})] : []),
+              ...(q.align ? [T(ALIGN_LABEL[q.align]).replace(/^[^\p{L}]+/u, "")] : []), ...(q.text ? [`«${q.text}»`] : [])].join(sep);
+            const pay = secs.map(q => { const v = val(q), lab = q.label && q.label !== "Your information" ? T(q.label).replace(/[:.。]\s*$/, "") : ""; return lab && v ? `${lab}: ${v}` : (v || lab); }).filter(Boolean).join("; ");
+            if (pay) { out.push(lx({en:`${r} ${I[0]}: ${pay}.`, ar:`${r} ${I[1]}: ${pay}.`, es:`${r} ${I[2]}: ${pay}.`, it:`${r} ${I[3]}: ${pay}.`})); break; }
+          }
           const sum = toText(cardSummary(e.sections, P));
           out.push(lx({en:`In a whisper, the Storyteller told ${to}: ${sum}.`, ar:`الراوي همس لـ ${to}: ${sum}.`, es:`En un susurro, el Narrador le dijo a ${to}: ${sum}.`, it:`In un sussurro, il Narratore disse a ${to}: ${sum}.`}));
           break;
