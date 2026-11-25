@@ -2799,8 +2799,47 @@ function gameStory(g){
           break;
         }
         case "shown": {
-          const to = (e.to || []).map(N).join(sep); if (!to) break;
-          const sum = toText(cardSummary(e.sections, P)); events++;
+          const ids = e.to || [], to = ids.map(N).join(sep); if (!to) break;
+          events++;
+          const secs = e.sections || [], first = secs[0] || {}, key = String(e.key || "");
+          if (key === "step:minioninfo:" || key === "step:demoninfo:") {
+            const dn = (first.names || []).map(N).join(sep);
+            const mn = dn, faces = (secs.find(q => q.tokens)?.tokens || []).map(cn).join(sep);
+            out.push(key === "step:minioninfo:"
+              ? lx({en:`In the dark, the Minions opened their eyes and found their master: ${dn}.`, ar:`في الضلمة، الأتباع فتحوا عينيهم ولقوا سيّدهم: ${dn}.`, es:`En la oscuridad, los Esbirros abrieron los ojos y hallaron a su amo: ${dn}.`, it:`Nel buio, i Seguaci aprirono gli occhi e trovarono il loro padrone: ${dn}.`})
+              : lx({en:`The Demon learned who served it: ${mn || "no one"}${faces ? `, and which three faces it could wear: ${faces}` : ""}.`, ar:`الشيطان عرف مين بيخدمه: ${mn || "محدش"}${faces ? `، وأنهي تلات وشوش يلبسها: ${faces}` : ""}.`,
+                es:`El Demonio supo quién le servía: ${mn || "nadie"}${faces ? `, y qué tres rostros podía llevar: ${faces}` : ""}.`, it:`Il Demone seppe chi lo serviva: ${mn || "nessuno"}${faces ? `, e quali tre volti poteva indossare: ${faces}` : ""}.`}));
+            break;
+          }
+          const pl = ids.length === 1 ? g.players.find(q => q.id === ids[0]) : null, ch0 = pl && cur[pl.id];
+          const eff = ch0 && (BY_ID[ch0]?.thinks && pl.drunkAs ? pl.drunkAs : ch0);
+          const names = (first.names || []).map(N).join(lx({en:" and ", ar:" و ", es:" y ", it:" e "})), tk = first.token ? cn(first.token) : "", num = first.number, c = num ?? 0;
+          const who = (String(first.label || "").match(/^(.*) is the$/) || [])[1] || "";
+          const yn = e.sections?.some(q => q.yesno) ? (secs.find(q => q.yesno).yesno === "YES" ? lx({en:"yes", ar:"آه", es:"sí", it:"sì"}) : lx({en:"no", ar:"لأ", es:"no", it:"no"})) : "";
+          const r = pl && eff ? R(pl.id, eff) : "", rc = r.replace(/[,،]$/, "");
+          const pair = names && tk, INFO = !r || !key.startsWith("adv:") ? null : {
+            washerwoman: pair && {en:`${r} wrung out the village's laundry and found a stain: one of ${names} was the ${tk}.`, ar:`${r} عصرت غسيل البلد ولقت بقعة: واحد من ${names} هو ${tk}.`,
+              es:`${r} escurrió la ropa del pueblo y halló una mancha: uno de ${names} era ${tk}.`, it:`${r} strizzò il bucato del villaggio e trovò una macchia: uno tra ${names} era ${tk}.`},
+            librarian: pair ? {en:`${r} pulled a dusty volume from the shelf: one of ${names} was the ${tk}.`, ar:`${r} سحب كتاب مغبّر من الرف: واحد من ${names} هو ${tk}.`,
+              es:`${r} sacó un volumen polvoriento del estante: uno de ${names} era ${tk}.`, it:`${r} estrasse un volume impolverato dallo scaffale: uno tra ${names} era ${tk}.`}
+              : num != null && {en:`${r} searched the shelves for strangers and found ${c}.`, ar:`${r} فتّش الرفوف على الغرباء ولقى ${c}.`, es:`${r} registró los estantes en busca de extraños y encontró ${c}.`, it:`${r} frugò tra gli scaffali in cerca di estranei e ne trovò ${c}.`},
+            investigator: pair && {en:`${r} followed a faint trail of evidence: one of ${names} was the ${tk}.`, ar:`${r} مشى ورا خيط دليل رفيع: واحد من ${names} هو ${tk}.`,
+              es:`${r} siguió un rastro tenue: uno de ${names} era ${tk}.`, it:`${r} seguì una labile traccia: uno tra ${names} era ${tk}.`},
+            chef: num != null && {en:`${r} counted the evil pairs sitting side by side: ${c}.`, ar:`${r} عدّ أزواج الأشرار القاعدين جنب بعض: ${c}.`,
+              es:`${r} contó las parejas malvadas sentadas juntas: ${c}.`, it:`${r} contò le coppie di malvagi sedute fianco a fianco: ${c}.`},
+            empath: num != null && {en:`${r} laid a hand on both neighbours' hearts and felt ${c} cold beat${s(c)}.`, ar:`${r} حطّ إيده على قلب جاريه الاتنين وحسّ بـ ${c === 1 ? "نبضة باردة" : c === 2 ? "نبضتين باردتين" : `${c} نبضات باردة`}.`,
+              es:`${r} posó la mano sobre el corazón de sus vecinos y sintió ${c} ${c === 1 ? "latido frío" : "latidos fríos"}.`, it:`${r} posò la mano sul cuore dei vicini e sentì ${c} ${c === 1 ? "battito freddo" : "battiti freddi"}.`},
+            clockmaker: num != null && {en:`${r} measured the distance between Demon and Minion: ${c} step${s(c)}.`, ar:`${r} قاس المسافة بين الشيطان وأقرب تابع: ${c === 1 ? "خطوة" : c === 2 ? "خطوتين" : `${c} خطوات`}.`,
+              es:`${r} midió la distancia entre el Demonio y su Esbirro: ${c} paso${s(c)}.`, it:`${r} misurò la distanza tra il Demone e il Seguace: ${c} pass${c === 1 ? "o" : "i"}.`},
+            undertaker: tk && {en:`${r} turned over the body of the executed and found the ${tk}.`, ar:`${r} قلّب جثة المعدوم ولقى إنه ${tk}.`,
+              es:`${r} dio la vuelta al cuerpo del ejecutado y vio quién era: ${tk}.`, it:`${r} voltò il corpo del giustiziato e vide chi era: ${tk}.`},
+            ravenkeeper: who && tk && {en:`With its last breath, the ravens told ${rc}: ${who} was the ${tk}.`, ar:`وبآخر نَفَس، الغربان قالت لـ ${rc}: ${who} هو ${tk}.`,
+              es:`Con su último aliento, los cuervos le dijeron a ${r}: ${who} era ${tk}.`, it:`Con l'ultimo respiro, i corvi dissero a ${r}: ${who} era ${tk}.`},
+            fortuneteller: yn && {en:`The crystal clouded, then cleared for ${rc}: ${yn}.`, ar:`الكورة غيّمت وبعدين صفّت لـ ${rc}: ${yn}.`,
+              es:`La bola de cristal se nubló y luego se aclaró para ${r}: ${yn}.`, it:`La sfera di cristallo si offuscò, poi si schiarì per ${r}: ${yn}.`},
+          }[eff];
+          if (INFO) { out.push(lx(INFO)); break; }
+          const sum = toText(cardSummary(e.sections, P));
           out.push(lx({en:`In a whisper, the Storyteller told ${to}: ${sum}.`, ar:`الراوي همس لـ ${to}: ${sum}.`, es:`En un susurro, el Narrador le dijo a ${to}: ${sum}.`, it:`In un sussurro, il Narratore disse a ${to}: ${sum}.`}));
           break;
         }
