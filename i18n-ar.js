@@ -863,7 +863,7 @@ window.BOTC_AR = (() => {
   // "To help evil" advice fragments.
   Object.assign(ui, {
     "the Spy can register as a Townsfolk, so you could show":"الجاسوس ممكن يظهر إنه من أهل البلد، فممكن تورّيه", "and point to":"وتشاور على", "and someone else.":"وحد تاني.",
-    ". This backs up the Demon's bluff, a big help for evil.":". ده بيأكّد كدبة الشيطان، وده بيساعد الأشرار جدًا.",
+    ". This backs up the Demon's bluff, a big help for evil.":". ده بيدعم الكدبة بتاعة الشيطان، وبيساعد الأشرار جدًا.",
     ", even though there is an Outsider in play.":"، رغم إن فيه غلبان في اللعبة.", ", even though there are Outsiders in play.":"، رغم إن فيه غلابة في اللعبة.",
     "the Recluse can register as a Minion, so you could point to":"المنعزل ممكن يظهر كتابع، فممكن تشاور على", "and a good player.":"ولاعب طيب.",
     ". Both are actually good, so this frames innocent players.":". الاتنين طيبين في الحقيقة، فكده إنت بتلبّس ناس بريئة.",
