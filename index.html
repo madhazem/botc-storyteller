@@ -1869,7 +1869,7 @@ function scriptCard(s){
       <span class="meter"><span>Players</span>${dots(s.players, "Player difficulty")}</span>
       <span class="meter"><span>Storyteller</span>${dots(s.storyteller, "Storyteller difficulty")}</span>
       <p><b>Experience:</b> ${esc(s.experience)}</p>
-      <p>${esc(s.blurb)} ${s.score ? `👍 ${s.score}.` : ""} ${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">View on botcscripts.com</a>` : ""}</p>
+      <p>${esc(s.blurb)} ${s.score ? `👍 ${s.score}.` : ""} ${s.url ? `<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent)">View on ${esc(new URL(s.url).hostname.replace(/^www\./,""))}</a>` : ""}</p>
       <p class="muted"><b>Twists:</b> ${esc(communityTwists(s))}</p>
       ${s.extras.length ? `<p class="muted">Also lists (Storyteller-only or travellers, not dealt): ${esc(s.extras.map(extraName).join(", "))}.</p>` : ""}
       ${s.unknown.length ? `<p class="muted">Skipped unknown characters: ${esc(s.unknown.join(", "))}.</p>` : ""}
@@ -1906,7 +1906,7 @@ function communityHtml(){
         ${s.source === "imported" ? `<button class="danger" data-action="remove-script" data-script="${s.id}" aria-label="Remove ${esc(s.name)}">✕</button>` : ""}</td>
     </tr>`).join("");
   return `<details class="more" ${SCRIPT.community || scriptFilter !== "all" ? "open" : ""}>
-    <summary>More scripts: ${list.length} community favourites from botcscripts.com${DATA.updated ? ` (updated ${esc(DATA.updated)})` : ""}</summary>
+    <summary>More scripts: ${list.length} community favourites from botcscripts.com and scripts4botc.com${DATA.updated ? ` (updated ${esc(DATA.updated)})` : ""}</summary>
     ${list.length ? "" : `<div class="msg warn">data.js didn't load, so only the base scripts are available. Keep data.js next to index.html.</div>`}
     <div class="row"><label for="scriptFilter" class="inline">Show</label>
       <select id="scriptFilter" data-change="script-filter">${opt("all","All")}${opt("1","Beginner")}${opt("2","Intermediate")}${opt("3","Advanced")}${opt("4","Expert")}${opt("teensy","Teensyville (5–6 players)")}${opt("imported","Imported by me")}</select></div>

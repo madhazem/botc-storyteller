@@ -346,6 +346,7 @@ window.BOTC_IT = (() => {
     "On botcscripts.com or the official script tool, download or copy a script's JSON and paste it here. Every officially released character is supported; homebrew characters are skipped.":"Su botcscripts.com o nello strumento ufficiale dei copioni, scarica o copia il JSON di un copione e incollalo qui. Tutti i personaggi ufficiali sono supportati; quelli fatti in casa vengono ignorati.",
     "Script JSON":"JSON del copione", "Import and choose":"Importa e scegli",
     "View on botcscripts.com":"Vedi su botcscripts.com",
+    "View on scripts4botc.com":"Vedi su scripts4botc.com",
     "Difficulty is estimated from the characters on the script.":"La difficoltà è stimata dai personaggi del copione.",
     "Only characters from the three base scripts.":"Solo personaggi dei tre copioni base.",
     "No experience needed.":"Non serve esperienza.", "Play Trouble Brewing a couple of times first.":"Giocate prima un paio di volte ad «Aria di Guai».",
@@ -662,7 +663,7 @@ window.BOTC_IT = (() => {
     [/^The (.+) \((.+)\) was executed:$/, "$1 ($2) è stato giustiziato:"],
     [/^Show (\d+) \(the true answer is (\d+)\)\.$/, "Mostragli $1 (la risposta giusta è $2)."],
     [/^⏱ (.+?)(?: min)? · (.+) characters \(T\/O\/M\/D\)(?: · (.+))?$/, (m, t, c, ty) => `⏱ ${t} min · ${c} personaggi (C/F/S/D)${ty ? " · " + (ty === "Full" ? "Completo" : ty) : ""}`],
-    [/^More scripts: (\d+) community favourites from botcscripts\.com(?: \(updated (.+)\))?$/, (m, n, d) => `Altri copioni: ${n} tra i preferiti della community su botcscripts.com${d ? ` (aggiornato il ${d})` : ""}`],
+    [/^More scripts: (\d+) community favourites from botcscripts\.com and scripts4botc\.com(?: \(updated (.+)\))?$/, (m, n, d) => `Altri copioni: ${n} tra i preferiti della community su botcscripts.com e scripts4botc.com${d ? ` (aggiornato il ${d})` : ""}`],
     [/^by (.+)$/, "di $1"],
     [/^(.+?) Built for 5 or 6 players\.$/, (m, a) => `${ui[a] || a} Pensato per 5 o 6 giocatori.`],
     [/^(Community|Imported) script(?: by ([^.]+?))?\.(?: 👍 (\d+)\.)?$/, (m, k, a, s) => `${scriptKind(k, a)}${s ? ` 👍 ${s}.` : ""}`],
@@ -886,6 +887,7 @@ window.BOTC_IT = (() => {
     "c-6687":"La Ballata del Posto 7", "c-427":"Ops! Tutti Forestieri", "c-1774":"Torte nel Forno", "c-5":"Corsa verso il Fondo",
     "c-523":"Luna Buona", "c-312":"Eclissi Lunare (v1.6)", "c-7519":"Il Tempo che Passa", "c-69":"Nascondino",
     "c-6716":"Il Rimorso del Compratore", "c-529":"Più Empio di Te", "c-258":"Tutto è Permesso", "c-68":"Morte Incerta",
+    "s4-roll-the-dice":"Tira il Dado e Muori!", "s4-blind-boggle":"Pasticcio alla Cieca",
     "c-78":"Ma di Chi È Questa Setta?",
   };
   Object.entries(scriptNames).forEach(([id, name]) => { if (scripts[id]) scripts[id].name = name; else scripts[id] = {name}; });

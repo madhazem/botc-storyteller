@@ -346,6 +346,7 @@ window.BOTC_ES = (() => {
     "On botcscripts.com or the official script tool, download or copy a script's JSON and paste it here. Every officially released character is supported; homebrew characters are skipped.":"En botcscripts.com o en la herramienta oficial de guiones, descarga o copia el JSON de un guion y pégalo aquí. Funcionan todos los personajes oficiales; los personajes caseros se ignoran.",
     "Script JSON":"JSON del guion", "Import and choose":"Importar y elegir",
     "View on botcscripts.com":"Ver en botcscripts.com",
+    "View on scripts4botc.com":"Ver en scripts4botc.com",
     "Difficulty is estimated from the characters on the script.":"La dificultad se calcula a partir de los personajes del guion.",
     "Only characters from the three base scripts.":"Solo personajes de los tres guiones básicos.",
     "No experience needed.":"No hace falta experiencia.", "Play Trouble Brewing a couple of times first.":"Jugad antes un par de veces a «Se Avecinan Problemas».",
@@ -662,7 +663,7 @@ window.BOTC_ES = (() => {
     [/^The (.+) \((.+)\) was executed:$/, "$1 ($2) fue ejecutado:"],
     [/^Show (\d+) \(the true answer is (\d+)\)\.$/, "Enséñale $1 (la respuesta correcta es $2)."],
     [/^⏱ (.+?)(?: min)? · (.+) characters \(T\/O\/M\/D\)(?: · (.+))?$/, (m, t, c, ty) => `⏱ ${t} min · ${c} personajes (A/F/E/D)${ty ? " · " + (ty === "Full" ? "Completo" : ty) : ""}`],
-    [/^More scripts: (\d+) community favourites from botcscripts\.com(?: \(updated (.+)\))?$/, (m, n, d) => `Más guiones: ${n} de los favoritos de la comunidad en botcscripts.com${d ? ` (actualizado ${d})` : ""}`],
+    [/^More scripts: (\d+) community favourites from botcscripts\.com and scripts4botc\.com(?: \(updated (.+)\))?$/, (m, n, d) => `Más guiones: ${n} de los favoritos de la comunidad en botcscripts.com y scripts4botc.com${d ? ` (actualizado ${d})` : ""}`],
     [/^by (.+)$/, "de $1"],
     [/^(.+?) Built for 5 or 6 players\.$/, (m, a) => `${ui[a] || a} Pensado para 5 o 6 jugadores.`],
     [/^(Community|Imported) script(?: by ([^.]+?))?\.(?: 👍 (\d+)\.)?$/, (m, k, a, s) => `${scriptKind(k, a)}${s ? ` 👍 ${s}.` : ""}`],
@@ -886,6 +887,7 @@ window.BOTC_ES = (() => {
     "c-6687":"La Balada del Asiento 7", "c-427":"¡Uy! Todos Forasteros", "c-1774":"Pasteles en el Horno", "c-5":"Carrera hacia el Fondo",
     "c-523":"Luna de Buen Agüero", "c-312":"Eclipse Lunar (v1.6)", "c-7519":"El Paso del Tiempo", "c-69":"El Escondite",
     "c-6716":"Arrepentimiento del Comprador", "c-529":"Más Impío que Tú", "c-258":"Todo Vale", "c-68":"Muerte Incierta",
+    "s4-roll-the-dice":"¡Tira el Dado y Muere!", "s4-blind-boggle":"Enredo a Ciegas",
     "c-78":"¿De Quién Es Esta Secta?",
   };
   Object.entries(scriptNames).forEach(([id, name]) => { if (scripts[id]) scripts[id].name = name; else scripts[id] = {name}; });

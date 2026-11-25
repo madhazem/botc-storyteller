@@ -343,6 +343,7 @@ window.BOTC_AR = (() => {
     "On botcscripts.com or the official script tool, download or copy a script's JSON and paste it here. Every officially released character is supported; homebrew characters are skipped.":"من botcscripts.com أو أداة السكريبتات الرسمية، نزّل أو انسخ ملف JSON بتاع السكريبت والزقه هنا. كل الشخصيات الرسمية مدعومة؛ الشخصيات اللي الناس عاملاها بنفسها مش هتتحسب.",
     "Script JSON":"ملف JSON بتاع السكريبت", "Import and choose":"ضيفه واختاره",
     "View on botcscripts.com":"شوفه على botcscripts.com",
+    "View on scripts4botc.com":"شوفه على scripts4botc.com",
     "Difficulty is estimated from the characters on the script.":"الصعوبة محسوبة تقريبًا من الشخصيات اللي في السكريبت.",
     "Only characters from the three base scripts.":"شخصيات من السكريبتات الأساسية التلاتة بس.",
     "No experience needed.":"مش محتاج خبرة.", "Play Trouble Brewing a couple of times first.":"العبوا «الشر على نار هادية» كام مرة الأول.",
@@ -642,7 +643,7 @@ window.BOTC_AR = (() => {
     [/^The (.+) \((.+)\) was executed:$/, "$1 ($2) اتعدم:"],
     [/^Show (\d+) \(the true answer is (\d+)\)\.$/, "ورّيه $1 (الإجابة الصح $2)."],
     [/^⏱ (.+?)(?: min)? · (.+) characters \(T\/O\/M\/D\)(?: · (.+))?$/, (m, t, c, ty) => `⏱ ${t}${/دقيقة/.test(t) ? "" : " دقيقة"} · ${c} شخصية (بلد/غلابة/أتباع/شيطان)${ty ? " · " + (ty === "Full" ? "كامل" : ty === "Teensyville" ? "تينسي فيل" : ty) : ""}`],
-    [/^More scripts: (\d+) community favourites from botcscripts\.com(?: \(updated (.+)\))?$/, (m, n, d) => `سكريبتات تانية: ${n} من أشهر سكريبتات المجتمع على botcscripts.com${d ? ` (اتحدّثت ${d})` : ""}`],
+    [/^More scripts: (\d+) community favourites from botcscripts\.com and scripts4botc\.com(?: \(updated (.+)\))?$/, (m, n, d) => `سكريبتات تانية: ${n} من أشهر سكريبتات المجتمع على botcscripts.com وscripts4botc.com${d ? ` (اتحدّثت ${d})` : ""}`],
     [/^by (.+)$/, "تأليف $1"],
     [/^(.+?) Built for 5 or 6 players\.$/, (m, a) => `${ui[a] || a} معمول لـ 5 أو 6 لاعيبة.`],
     [/^(Community|Imported) script(?: by ([^.]+?))?\.(?: 👍 (\d+)\.)?$/, (m, k, a, s) => `${k === "Community" ? "سكريبت من المجتمع" : "سكريبت إنت ضفته"}${a ? ` تأليف ${a}` : ""}.${s ? ` 👍 ${s}.` : ""}`],
@@ -882,6 +883,7 @@ window.BOTC_AR = (() => {
     "c-6687":"موّال كرسي 7", "c-427":"يا نهار أبيض! كلهم غلابة", "c-1774":"الفطير في الفرن", "c-5":"مين ينزل أوطى",
     "c-523":"القمر السعد طالع", "c-312":"خسوف القمر (نسخة 1.6)", "c-7519":"الأيام بتجري", "c-69":"استغمّاية",
     "c-6716":"يا ريتني ما اشتريت", "c-529":"أوحش منك", "c-258":"مفيش ممنوع", "c-68":"ميّت ولا عايش؟",
+    "s4-roll-the-dice":"ارمي النرد وموت!", "s4-blind-boggle":"التوهة العمياء",
     "c-78":"هي الطايفة دي بتاعة مين أصلًا؟",
   };
   Object.entries(scriptNames).forEach(([id, name]) => { if (scripts[id]) scripts[id].name = name; else scripts[id] = {name}; });
