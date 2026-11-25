@@ -450,6 +450,8 @@ window.BOTC_IT = (() => {
     "JSON for the official script tool / botc.app":"JSON per lo strumento ufficiale dei copioni / botc.app",
     "Paste this into the official script tool or botc.app to load the same script.":"Incolla questo nello strumento ufficiale dei copioni o su botc.app per caricare lo stesso copione.",
     "Copy JSON":"Copia JSON", "Copied ✓":"Copiato ✓", "Copy log":"Copia il registro", "Download log":"Scarica il registro",
+    "Game story":"Storia della partita", "Copy story":"Copia la storia", "Copy a prompt for an AI":"Copia un prompt per un'IA",
+    "The prompt holds the full log (with every role) and asks an AI chat to write a richer version in your language.":"Il prompt contiene il registro completo (con tutti i ruoli) e chiede a una chat IA di scrivere una versione più ricca nella tua lingua.",
     "Jinxes (special rules when both are in play)":"Incompatibilità (regole speciali quando sono in gioco entrambi)",
     // Guide
     "Storyteller tips for this script":"Consigli per il Narratore su questo copione",

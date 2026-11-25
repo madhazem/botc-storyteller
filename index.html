@@ -194,6 +194,8 @@
   /* Log + reveal */
   ul.log-list { padding-inline-start:20px; }
   ul.log-list li { margin:3px 0; }
+  .story h4 { margin:12px 0 2px; }
+  .story p { margin:0 0 6px; line-height:1.55; }
   .overlay.reveal { justify-content:flex-start; }
   table.reveal-table { width:100%; margin:8px 0; }
   table.reveal-table td { text-align:start; font-size:17px; padding:6px 8px; }
@@ -2273,6 +2275,7 @@ const W = {
   evilWon:{en:"😈 Evil won", ar:"😈 الأشرار كسبوا", es:"😈 Ganó el Mal", it:"😈 Ha vinto il Male"},
   unfinished:{en:"Unfinished game", ar:"لعبة مخلصتش", es:"Partida sin terminar", it:"Partita non finita"},
   close:{en:"Close", ar:"خلاص", es:"Cerrar", it:"Chiudi"}, del:{en:"Delete", ar:"امسحها", es:"Borrar", it:"Elimina"},
+  storyBtn:{en:"Game story", ar:"حدوتة اللعبة", es:"Historia de la partida", it:"Storia della partita"},
   gameLog:{en:"Game log", ar:"سجل اللعبة", es:"Registro de la partida", it:"Registro della partita"},
   nothing:{en:"Nothing happened.", ar:"محصلش حاجة.", es:"No pasó nada.", it:"Non è successo niente."},
   players:{en:"Players:", ar:"اللاعيبة:", es:"Jugadores:", it:"Giocatori:"},
@@ -2548,7 +2551,7 @@ function revealHtml(){
       <p class="muted">${lx({en:"Who was who", ar:"مين كان مين", es:"Quién era quién", it:"Chi era chi"})} · ${phaseName(e.ph)}</p>
       <table class="reveal-table"><tbody>${rows}</tbody></table>
       <div class="row"><button class="primary big" data-action="reveal-close">✅ ${lx(W.close)}</button>
-        <button data-action="tab" data-tab="log">📜 ${lx(W.gameLog)}</button></div>
+        <button data-action="tab" data-tab="log">📖 ${lx(W.storyBtn)}</button></div>
     </div></div>`;
 }
 function endGameButtons(){
@@ -2577,6 +2580,7 @@ function viewLog(){
   return `<section class="panel"><h2>📜 Game log</h2>
     ${state.phase ? "" : `<p class="muted">The log starts when you press Start Night 1.</p>`}
     ${(state.log || []).length ? logExportButtons("current") : ""}
+    ${(state.log || []).length && state.phase ? storyHtml(gameRecord(), "current") : ""}
     ${logHtml(state.log)}</section>
     ${pastGamesHtml()}`;
 }
@@ -2635,6 +2639,129 @@ function logExportButtons(id){
   return `<div class="row"><button data-action="log-copy" data-id="${id}">📋 Copy log</button>
     <button data-action="log-download" data-id="${id}">⬇ Download log</button></div>`;
 }
+// ---------------------------------------------------------------------------
+// Game story: a short narrative built from the log, in the current language, with
+// no AI involved. Also a prompt that asks any AI chat to write a richer version.
+// Sentences with several wordings take them in turn so the text doesn't repeat.
+// ---------------------------------------------------------------------------
+function gameStory(g){
+  let vc = 0;
+  const V = o => { const a = o[L() && o[state.lang] != null ? state.lang : "en"]; return Array.isArray(a) ? a[vc++ % a.length] : a; };
+  const sep = listSep(), log = g.log || [];
+  const N = id => g.players.find(x => x.id === id)?.name ?? "?";
+  const cn = id => BY_ID[id]?.name ?? "?";
+  const toText = html => new DOMParser().parseFromString(html, "text/html").body.textContent;
+  const P = id => esc(N(id));
+  const start = {}; g.players.forEach(p => { start[p.id] = p.char; });
+  log.slice().reverse().forEach(e => { if (e.k === "char") start[e.p] = e.from; });
+  const cur = {...start};
+  const teamIn = (map, t) => g.players.filter(p => BY_ID[map[p.id]]?.team === t);
+  const who = (p, map) => `${p.name} (${cn(map[p.id])})`;
+  const s = n => n === 1 ? "" : "s";
+  const parts = [];
+
+  const demons = teamIn(start, "demon"), minions = teamIn(start, "minion"), dl = demons.map(p => who(p, start)).join(sep), ml = minions.map(p => who(p, start)).join(sep);
+  const n = g.players.length, script = historyScriptName(g);
+  parts.push({h:lx({en:"Prologue", ar:"البداية", es:"Prólogo", it:"Prologo"}), t:lx({
+    en:`${n} players sat down to play ${script}.${demons.length ? ` Hidden among them was the Demon: ${dl}${minions.length ? `, helped by the Minion${s(minions.length)}: ${ml}` : ""}.` : ""}`,
+    ar:`${n} لاعيبة قعدوا يلعبوا «${script}».${demons.length ? ` ومستخبّي وسطهم الشيطان: ${dl}${minions.length ? `، ومعاه ${minions.length === 1 ? "التابع" : "الأتباع"}: ${ml}` : ""}.` : ""}`,
+    es:`${n} jugadores se sentaron a jugar «${script}».${demons.length ? ` Entre ellos se escondía el Demonio: ${dl}${minions.length ? `, ayudado por ${minions.length === 1 ? "el Esbirro" : "los Esbirros"}: ${ml}` : ""}.` : ""}`,
+    it:`${n} giocatori si sono seduti per giocare a «${script}».${demons.length ? ` Tra loro si nascondeva il Demone: ${dl}${minions.length ? `, aiutato ${minions.length === 1 ? "dal Seguace" : "dai Seguaci"}: ${ml}` : ""}.` : ""}`})});
+
+  const byPh = {};
+  log.forEach(e => (byPh[e.ph] ||= []).push(e));
+  Object.keys(byPh).map(Number).filter(ph => ph > 0).sort((a, b) => a - b).forEach(ph => {
+    const night = isNightPh(ph), out = [];
+    byPh[ph].forEach(e => {
+      const nm = N(e.p), w = `${nm} (${cn(e.eff)})`;
+      switch (e.k) {
+        case "pick": {
+          const what = e.yesno ? (e.yesno === "YES" ? lx({en:"yes", ar:"آه", es:"sí", it:"sì"}) : lx({en:"no", ar:"لأ", es:"no", it:"no"}))
+            : e.none ? lx({en:"no one", ar:"محدش", es:"nadie", it:"nessuno"}) : [...(e.players || []).map(N), ...(e.chars || []).map(cn)].join(sep);
+          out.push(V({en:[`${w} chose ${what}.`, `${w} picked ${what}.`], ar:[`${w} اختار ${what}.`, `${w} حط عينه على ${what}.`],
+            es:[`${w} eligió: ${what}.`, `${w} se decidió por ${what}.`], it:[`${w} ha scelto: ${what}.`, `${w} ha puntato su ${what}.`]}));
+          break;
+        }
+        case "shown": {
+          const to = (e.to || []).map(N).join(sep); if (!to) break;
+          const sum = toText(cardSummary(e.sections, P));
+          out.push(lx({en:`The Storyteller told ${to}: ${sum}.`, ar:`الراوي قال لـ ${to}: ${sum}.`, es:`El Narrador le dijo a ${to}: ${sum}.`, it:`Il Narratore ha detto a ${to}: ${sum}.`}));
+          break;
+        }
+        case "char": {
+          cur[e.p] = e.to;
+          out.push(lx({en:`${nm} became the ${cn(e.to)}.`, ar:`${nm} بقى ${cn(e.to)}.`, es:`${nm} se convirtió en ${cn(e.to)}.`, it:`${nm} è diventato ${cn(e.to)}.`}));
+          break;
+        }
+        case "died": {
+          if (byPh[ph].some(o => o.k === "day" && lx(o).includes(nm))) break; // the day ability line already says it
+          const d = `${nm} (${cn(cur[e.p])})`;
+          out.push(night ? V({en:[`In the night, ${d} died.`, `${d} never saw the morning.`], ar:[`في الليل، ${d} مات.`, `${d} ماشافش الصبح.`],
+            es:[`Durante la noche murió ${d}.`, `${d} no vio amanecer.`], it:[`Durante la notte è morto ${d}.`, `${d} non ha visto l'alba.`]})
+            : lx({en:`${d} died.`, ar:`${d} مات.`, es:`${d} murió.`, it:`${d} è morto.`}));
+          break;
+        }
+        case "executed": {
+          const d = `${nm} (${cn(cur[e.p])})`;
+          out.push(V({en:[`The town decided to execute ${d}.`, `${d} was put to death by the town.`], ar:[`البلد قررت تعدم ${d}.`, `${d} اتعدم.`],
+            es:[`El pueblo decidió ejecutar a ${d}.`, `${d} fue ejecutado.`], it:[`Il villaggio ha deciso di giustiziare ${d}.`, `${d} è stato giustiziato.`]}));
+          break;
+        }
+        case "revived": out.push(lx({en:`${nm} came back to life.`, ar:`${nm} رجع للحياة.`, es:`${nm} volvió a la vida.`, it:`${nm} è tornato in vita.`})); break;
+        case "nom": {
+          const by = N(e.by), on = N(e.on), c = e.count, vs = e.voters?.length ? ` (${e.voters.map(N).join(sep)})` : "";
+          out.push(V({en:[`${by} nominated ${on}: ${c} vote${s(c)}${vs}.`, `${by} put ${on} on trial: ${c} vote${s(c)}${vs}.`],
+            ar:[`${by} رشّح ${on}: ${c} ${c === 1 ? "صوت" : "أصوات"}${vs}.`, `${by} اتهم ${on}، وطلعله ${c} ${c === 1 ? "صوت" : "أصوات"}${vs}.`],
+            es:[`${by} nominó a ${on}: ${c} voto${s(c)}${vs}.`, `${by} puso a ${on} en el banquillo: ${c} voto${s(c)}${vs}.`],
+            it:[`${by} ha nominato ${on}: ${c} vot${c === 1 ? "o" : "i"}${vs}.`, `${by} ha messo ${on} sotto accusa: ${c} vot${c === 1 ? "o" : "i"}${vs}.`]}));
+          break;
+        }
+        case "day": out.push(`${nm} (${cn(e.eff)}) ${lx(e)}.`); break;
+      }
+    });
+    if (!out.length) out.push(night
+      ? lx({en:"A quiet night: nothing was recorded.", ar:"ليلة هادية: مفيش حاجة اتسجّلت.", es:"Una noche tranquila: no se registró nada.", it:"Una notte tranquilla: non è stato registrato nulla."})
+      : lx({en:"The day passed with nothing recorded.", ar:"النهار عدّى ومفيش حاجة اتسجّلت.", es:"El día pasó sin que se registrara nada.", it:"Il giorno è passato senza che sia stato registrato nulla."}));
+    parts.push({h:phaseName(ph), t:out.join(" ")});
+  });
+
+  const dn = teamIn(cur, "demon").map(p => p.name).join(sep), alive = g.players.filter(p => p.alive).map(p => p.name).join(sep);
+  const end = g.winner === "good"
+    ? lx({en:`In the end, Good won.${dn ? ` ${dn} could hide no longer.` : ""}`, ar:`في الآخر، الطيبين كسبوا.${dn ? ` و${dn} ماقدرش يستخبّى أكتر من كده.` : ""}`,
+        es:`Al final ganó el Bien.${dn ? ` ${dn} ya no pudo esconderse.` : ""}`, it:`Alla fine ha vinto il Bene.${dn ? ` ${dn} non ha potuto più nascondersi.` : ""}`})
+    : g.winner === "evil"
+    ? lx({en:"In the end, Evil won, and the village fell silent.", ar:"في الآخر، الأشرار كسبوا، والبلد سكتت.", es:"Al final ganó el Mal y el pueblo quedó en silencio.", it:"Alla fine ha vinto il Male, e il villaggio è rimasto in silenzio."})
+    : lx({en:"The game was left unfinished.", ar:"اللعبة اتسابت من غير نهاية.", es:"La partida quedó sin terminar.", it:"La partita è rimasta incompiuta."});
+  const left = alive ? lx({en:`Still standing: ${alive}.`, ar:`لسه واقفين على رجليهم: ${alive}.`, es:`Siguen en pie: ${alive}.`, it:`Ancora in piedi: ${alive}.`})
+    : lx({en:"Nobody was left alive.", ar:"محدش فضل عايش.", es:"No quedó nadie con vida.", it:"Non è rimasto nessuno in vita."});
+  parts.push({h:lx({en:"Epilogue", ar:"الخاتمة", es:"Epílogo", it:"Epilogo"}), t:`${end} ${left}`});
+  return {title:script, parts};
+}
+function storyText(g){
+  const st = gameStory(g);
+  return [st.title, ...st.parts.flatMap(p => ["", p.h, p.t])].join("\n") + "\n";
+}
+function storyPrompt(g){
+  const lang = {en:"English", ar:"Egyptian Arabic (colloquial, not formal Arabic)", es:"Spanish", it:"Italian"}[L() ? state.lang : "en"];
+  return `Write a short, gripping story (about 500 words) of the Blood on the Clocktower game below, in ${lang}.
+
+Rules:
+- Use only what is in the log. Do not invent deaths, votes, choices, characters or results.
+- Keep the real player names. Use the character names as given.
+- Tell it night by night and day by day, building suspense, and end with the result.
+- Tone: gothic mystery with a little humour. Do not add a title unless it fits naturally.
+
+GAME LOG
+${gameText(g)}`;
+}
+function storyHtml(g, id){
+  const st = gameStory(g);
+  return `<h3>📖 Game story</h3>
+    <div class="story no-tr">${st.parts.map(p => `<h4>${esc(p.h)}</h4><p>${esc(p.t)}</p>`).join("")}</div>
+    <div class="row"><button data-action="story-copy" data-id="${id}">📖 Copy story</button>
+    <button data-action="prompt-copy" data-id="${id}">✨ Copy a prompt for an AI</button></div>
+    <p class="muted">The prompt holds the full log (with every role) and asks an AI chat to write a richer version in your language.</p>`;
+}
 const exportGame = id => id === "current" ? gameRecord() : loadHistory().find(g => g.id === id);
 function downloadText(name, text){
   const url = URL.createObjectURL(new Blob([text], {type:"text/plain;charset=utf-8"}));
@@ -2671,6 +2798,7 @@ function pastHtml(g){
       <p class="muted"><b>${esc(historyScriptName(g))}</b> · <span class="no-tr">${esc(fmtDate(g.start))}</span></p>
       <h2>${lx(g.winner === "good" ? W.goodWon : g.winner === "evil" ? W.evilWon : W.unfinished)}</h2>
       <table class="reveal-table"><tbody>${rows}</tbody></table>
+      ${(g.log || []).length ? storyHtml(g, g.id) : ""}
       <h2>📜 ${lx(W.gameLog)}</h2>
       ${logHtml(g.log, P)}
       ${logExportButtons(g.id)}
@@ -3036,9 +3164,9 @@ document.addEventListener("click", e => {
     case "show-done": showing = null; break;
     case "spy-grimoire": state.hidden = false; tab = "grimoire"; break;
     case "print": window.print(); return;
-    case "log-copy": case "log-download": {
+    case "log-copy": case "log-download": case "story-copy": case "prompt-copy": {
       const g = exportGame(b.dataset.id); if (!g) return;
-      const text = gameText(g);
+      const act = b.dataset.action, text = act === "story-copy" ? storyText(g) : act === "prompt-copy" ? storyPrompt(g) : gameText(g);
       if (b.dataset.action === "log-download") {
         const day = new Date(g.start).toISOString().slice(0, 10);
         downloadText(`botc-${(g.scriptName || g.script || "game").replace(/[^\w-]+/g, "-").toLowerCase()}-${day}.txt`, text);
